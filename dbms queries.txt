@@ -1,0 +1,195 @@
+1st program Queries:
+1 List the details of Students who are all studying in 2ndsem MCA.
+
+SELECT * FROM STUDENT WHERE SEM=2 AND BRANCHID IN
+(SELECT BRANCHID FROM BRANCH WHERE BRANCHNAME='MCA')
+
+2 List the students who are not borrowed any books.
+
+ SELECT * FROM STUDENT WHERE USN NOT IN ( SELECT USN FROM BORROW);
+
+3 Display the USN, Student name, Branch_name, Book_name, Author_name, Books_Borrowed_Date of 2nd sem MCA Students who borrowed books.
+
+SELECT  DISTINCT  A1.USN,A1.NAME,C.BOOKNAME,D.AUTHORNAME,A2.BORROWED_DATE 
+FROM STUDENT A1 JOIN BRANCH BR ON A1.BRANCHID=BR.BRANCHID JOIN BORROW A2 
+ON A1.USN=A2.USN JOIN BOOK C ON A2.BOOKID=C.BOOKID JOIN AUTHOR D ON 
+C.AUTHORID=D.AUTHORID WHERE A1.SEM=2 AND BR.BRANCHNAME='MCA';
+
+ 
+4 Display the number of books written by each Author. 
+
+SELECT AUTHORNAME, COUNT(*) 
+FROM AUTHOR, BOOK 
+WHERE AUTHOR.AUTHORID=BOOK.AUTHORID 
+GROUP BY AUTHOR.AUTHORNAME;
+
+5 Display the student details who borrowed more than two books. 
+
+SELECT * 
+FROM STUDENT
+WHERE USN IN (SELECT USN FROM BORROW GROUP BY USN HAVING COUNT(*)>2);
+
+
+6 Display the student details who borrowed books of more than one Author. 
+
+SELECT * 
+FROM STUDENT 
+WHERE USN IN (SELECT USN FROM BORROW A JOIN BOOK B ON A.BOOKID=B.BOOKID GROUP BY USN, B.AUTHORID HAVING COUNT(B.AUTHORID)>1);
+
+
+7 Display the Book names in descending order of their names. 
+
+SELECT BOOKNAME
+ FROM BOOK ORDER BY BOOKNAME DESC;
+
+
+8 List the details of students who borrowed the books which are all published by the same Publisher
+
+SELECT *
+FROM STUDENT WHERE USN IN(SELECT A.USN FROM STUDENT A JOIN BORROW 
+B ON B.USN=A.USN JOIN BOOK C ON B.BOOKID=C.BOOKID GROUP BY A.USN HAVING COUNT(C.PUBLISHER)=1);
+
+2nd program
+Query 1 : 
+ Select pname, tname, age from player p, team t where 
+p.tid=t.tid and age =(select min(age) from player);
+
+Query 2:
+select * from stadium where sid in
+ (select sid from match group by sid having count(sid) = 
+(select max(count(sid)) from match group by sid));
+
+Query 3:
+select * from player where pid not in ( select captain_pid from
+team) and pid in (select man_of_match from match group by 
+man_of_match having count(man_of_match)=2);
+
+Query 4:
+select * from team where tid in (select winning_team_id from 
+match group by winning_team_id having count(winning_team_id)= 
+(select max(count(winning_team_id))from match group by 
+winning_team_id));
+
+Query 5 
+ select tname from team where tid in (
+ select winning_team_id from match group 
+by(winning_team_id,sid)
+ having count(*) in (select count(winning_team_id)
+ from match group by winning_team_id));
+
+3rd program 
+Queries: 
+1 Display the youngest player (in terms of age) Name, Team name , age in which he belongs of the tournament. 
+
+SELECT B.NAME, A.TEAMNAME, B.AGE
+ FROM TEAM A , PLAYER B 
+WHERE A.TEAMID = B.TEAMID AND B.AGE=(SELECT MIN(AGE) FROM PLAYER ;
+
+
+2 List the details of the stadium where the maximum number of matches were played. 
+
+SELECT *
+ FROM STADIUM WHERE SID IN  (SELECT SID FROM MATCH GROUP BY SID HAVING COUNT(SID) = (SELECT MAX(COUNT(SID)) FROM MATCH GROUP BY SID))  ;
+
+3 List the details of the player who is not a captain but got the man_of _match award at least in two matches. 
+
+ SELECT *
+ FROM PLAYER WHERE PID NOT IN ( SELECTCAPTAIN_PID FROM TEAM 
+WHERE CAPTAIN_PID NOT IN (SELECT MAN_OF_MATCH FROM MATCH GROUP BY MAN_OF_MATCH HAVING COUNT(MAN_OF_MATCH)=2));
+
+
+4 Display the Team details who won the maximum matches. 
+
+SELECT * 
+FROM TEAM 
+WHERE TID IN  (SELECT WINNING_TEAM_ID FROM MATCH GROUP BY WINNING_TEAM_ID HAVING COUNT(WINNING_TEAM_ID)=(SELECT MAX(COUNT(WINNING_TEAM_ID))FROM MATCH GROUP BY WINNING_TEAM_ID));
+
+5 Display the team name where all its won matches played in the same stadium. 
+
+SELECT TNAME FROM TEAM WHERE TID IN (
+SELECT WINNING_TEAM_ID FROM MATCH GROUP
+BY(WINNING_TEAM_ID,SID)
+HAVING COUNT(*) IN (SELECT COUNT(WINNING_TEAM_ID)
+FROM MATCH GROUP BY WINNING_TEAM_ID));
+
+4th program 
+1List the state name which is having maximum number of tourist places.
+SELECT STATE FROM TOURIST_PLACE GROUP BY STATE HAVING
+COUNT(STATE)=(SELECT MAX(COUNT(STATE)) FROM TOURIST_PLACE GROUP BY STATE);
+
+2List details of Tourist place where maximum number of tourists visited.
+SELECT * FROM TOURIST_PLACE WHERE TPID IN (SELECT TPID FROM VISITS GROUP
+BY TPID HAVING COUNT(TPID)= (SELECT MAX(COUNT(TPID)) FROM VISITS GROUP BY
+TPID));
+3List the details of tourists visited all tourist places of the state “KARNATAKA”
+SELECT * FROM TOURIST T WHERE T.TID IN
+(SELECT TID FROM VISITS JOIN TOURIST_PLACE ON
+VISITS.TPID=TOURIST_PLACE.TPID WHERE STATE='KARNATAKA'
+GROUP BY TID HAVING COUNT(STATE) IN (SELECT COUNT(STATE ) FROM
+TOURIST_PLACE WHERE STATE='KARNATAKA') );
+
+4.Display the details of the tourists visited at least one tourist place of the state, but visited all states tourist places.
+SELECT * FROM TOURIST T WHERE T.TID IN (SELECT TID FROM VISITS JOIN
+TOURIST_PLACE ON VISITS.TPID=TOURIST_PLACE.TPID
+GROUP BY TID HAVING COUNT(DISTINCT STATE)
+IN (SELECT COUNT(DISTINCT STATE ) FROM TOURIST_PLACE) );
+
+
+5 Display the details of the tourist place visited by the tourists of all country.
+SELECT * FROM TOURIST_PLACE WHERE TPID IN (
+SELECT TPID FROM VISITS JOIN TOURIST ON VISITS.TID=TOURIST.TID
+GROUP BY TPID HAVING COUNT(DISTINCT COUNTRY)=
+(SELECT COUNT(DISTINCT COUNTRY) FROM TOURIST));
+
+5th program 
+Queries:
+1 List the details of the candidates who are contesting from more than    one constituencies which are belongs to different states.
+
+SELECT * FROM CANDIDATES WHERE CAND_ID IN (SELECT CAND_ID FROM CONTEST
+JOIN CONSTITUENCY ON CONTEST.CONS_ID=CONSTITUENCY.CONS_ID
+GROUP BY CAND_ID HAVING COUNT(DISTINCT(CSSTATE))>1);
+
+2 Display the state name having maximum number of constituencies.
+
+SELECT CSSTATE FROM CONSTITUENCY GROUP BY CSSTATE HAVING COUNT(CSSTATE)
+IN (SELECT MAX(COUNT(CSSTATE)) FROM CONSTITUENCY GROUP BY CSSTATE);
+
+
+query 3:
+create or replace procedure agechecking ( id in number,age in 
+number)
+ as
+ BEGIN
+ if age>18 then
+ insert into voter(vid,vage) values (id,age);
+ else
+ dbms_output.put_line('age should be high');
+ end if;
+ end agechecking;
+ /
+Procedure created.
+SQL> set serveroutput on;
+SQL> exec agechecking (25,21);
+
+query 4:
+ create or replace procedure display_count
+ (
+ const_id number
+ )
+ as
+ vid constituency.cons_id % type;
+ begin
+ select no_of_voters into vid from constituency where cons_id = const_id 
+and rownum = 1;
+ dbms_output.put_line ( 'total voters are: ' || vid);
+end;
+
+Query 5: 
+ create or replace trigger count
+ after insert on voter
+ for each row
+ begin
+ update constituency
+ set no_of_voters = no_of_voters + 1
+ where cons_id=:new.cons_id;
+ end count;

@@ -1,0 +1,443 @@
+1st program 
+
+CREATE TABLE BRANCH
+    (
+        BRANCHID NUMBER PRIMARY KEY,
+        BRANCHNAME VARCHAR(20),
+        HOD VARCHAR(20)
+    );
+  CREATE TABLE STUDENT
+     (
+         USN VARCHAR(30) PRIMARY KEY,
+         NAME VARCHAR(40),
+         ADDRESS VARCHAR(60),
+         BRANCHID NUMBER REFERENCES BRANCH,
+         SEM NUMBER
+    );
+CREATE TABLE AUTHOR
+    (
+       AUTHORID NUMBER PRIMARY KEY,
+       AUTHORNAME VARCHAR(30),
+       COUNTRY VARCHAR(30),
+       AGE NUMBER
+    );
+CREATE TABLE BOOK
+    (
+      BOOKID NUMBER PRIMARY KEY,
+      BOOKNAME VARCHAR(30),
+      AUTHORID NUMBER REFERENCES AUTHOR,
+      PUBLISHER VARCHAR(30),
+      BRANCHID NUMBER REFERENCES BRANCH
+    );
+CREATE TABLE BORROW
+     (
+       USN VARCHAR(30) REFERENCES STUDENT,
+       BOOKID NUMBER REFERENCES BOOK,
+       BORROWED_DATE DATE
+    );
+
+
+INSERT INTO BRANCH VALUES (1,'MCA','SRINIVAS RAO');
+INSERT INTO BRANCH VALUES (2,'BE','TIPPESWAMY');
+INSERT INTO BRANCH VALUES (3,'BE_EC','RAVISHANKAR');
+INSERT INTO BRANCH VALUES (4,'BE_ISE','JOHN');
+
+INSERT INTO STUDENT VALUES ( '1ST16MCA01', 'ADARSH','KERALA',1,2);
+INSERT INTO STUDENT VALUES ( '1ST16CS02', 'ANIS','KERALA',2,2);
+INSERT INTO STUDENT VALUES ( '1ST16EC03', 'ARCHANA','CHANDIGARH',3,3);
+INSERT INTO STUDENT VALUES ( '1ST16IS01', 'NAYON','WEST BENGAL',4,4);
+IN SERT INTO STUDENT VALUES ( '1ST16MCA02', 'RAHUK','BIHAR',1,2);
+
+INSERT INTO AUTHOR VALUES (11,'WILLIAM STALLING','AMERICA',30);
+INSERT INTO AUTHOR VALUES (12,'PETERSON','CANADA', 40);
+INSERT INTO AUTHOR VALUES (13,'PADMAREDDY','INDIA',35);
+INSERT INTO AUTHOR VALUES (14,'NAMRATHA','INDIA',27);
+
+INSERT INTO BOOK VALUES (111,'MCADBMS',11,'WILLIAM PUBLISHER',1);
+INSERT INTO BOOK VALUES (222,'CSDBMS',12,'PETERSON PUBLISHER',2);
+INSERT INTO BOOK VALUES (333,'ISEDBMS',13,'PADMAREDDY PUBLISHER',3);
+INSERT INTO BOOK VALUES (444,'ECDBMS',14,'NAMRATHA PUBLISHER',4);
+
+INSERT INTO BORROW VALUES( '1ST16MCA01',111,date '2010-11-02');
+INSERT INTO BORROW VALUES( '1ST16CS02',222,date '2014-1-02');
+INSERT INTO BORROW VALUES( '1ST16IS01',333,date '2014-4-05');
+INSERT INTO BORROW VALUES( '1ST16IS01',333,date '2015-5-07');
+INSERT INTO BORROW VALUES( '1ST16IS01',333,date '2017-4-05');
+
+
+Queries:
+1 List the details of Students who are all studying in 2ndsem MCA.
+
+SELECT * FROM STUDENT WHERE SEM=2 AND BRANCHID IN
+(SELECT BRANCHID FROM BRANCH WHERE BRANCHNAME='MCA')
+
+2 List the students who are not borrowed any books.
+
+ SELECT * FROM STUDENT WHERE USN NOT IN ( SELECT USN FROM BORROW);
+
+3 Display the USN, Student name, Branch_name, Book_name, Author_name, Books_Borrowed_Date of 2nd sem MCA Students who borrowed books.
+
+SELECT  DISTINCT  A1.USN,A1.NAME,C.BOOKNAME,D.AUTHORNAME,A2.BORROWED_DATE 
+FROM STUDENT A1 JOIN BRANCH BR ON A1.BRANCHID=BR.BRANCHID JOIN BORROW A2 
+ON A1.USN=A2.USN JOIN BOOK C ON A2.BOOKID=C.BOOKID JOIN AUTHOR D ON 
+C.AUTHORID=D.AUTHORID WHERE A1.SEM=2 AND BR.BRANCHNAME='MCA';
+
+ 
+4 Display the number of books written by each Author. 
+
+SELECT AUTHORNAME, COUNT(*) 
+FROM AUTHOR, BOOK 
+WHERE AUTHOR.AUTHORID=BOOK.AUTHORID 
+GROUP BY AUTHOR.AUTHORNAME;
+
+5 Display the student details who borrowed more than two books. 
+
+SELECT * 
+FROM STUDENT
+WHERE USN IN (SELECT USN FROM BORROW GROUP BY USN HAVING COUNT(*)>2);
+
+
+6 Display the student details who borrowed books of more than one Author. 
+
+SELECT * 
+FROM STUDENT 
+WHERE USN IN (SELECT USN FROM BORROW A JOIN BOOK B ON A.BOOKID=B.BOOKID GROUP BY USN, B.AUTHORID HAVING COUNT(B.AUTHORID)>1);
+
+
+7 Display the Book names in descending order of their names. 
+
+SELECT BOOKNAME
+ FROM BOOK ORDER BY BOOKNAME DESC;
+
+
+8 List the details of students who borrowed the books which are all published by the same Publisher
+
+SELECT *
+FROM STUDENT WHERE USN IN(SELECT A.USN FROM STUDENT A JOIN BORROW 
+B ON B.USN=A.USN JOIN BOOK C ON B.BOOKID=C.BOOKID GROUP BY A.USN HAVING COUNT(C.PUBLISHER)=1);
+
+
+2nd program
+create table team
+( tid int primary key, tname varchar(20), coach varchar(20), captain_pid int,
+city varchar(20));
+
+create table player
+( pid int primary key, pname varchar(2),
+age int,
+tid int references team(tid))
+
+create table stadium (sid int primary key, sname varchar(20),
+picode number(8), city varchar(20), area varchar(20));
+
+create table match (mid int primary key, mdate date,
+time varchar(6),
+sid int references stadium(sid), team1_id int references team(tid), team2_id int references team(tid), winning_team_id int references team(tid),
+
+man_of_match int references player(pid))
+
+
+create table player_phone
+( pid int references player(pid), phone int , primary key(pid,phone));
+
+select * from team;
+select * from player;
+select * from stadium;
+select * from match;
+select * from player_phone;
+
+2nd program
+Query 1 : 
+ Select pname, tname, age from player p, team t where 
+p.tid=t.tid and age =(select min(age) from player);
+
+Query 2:
+select * from stadium where sid in
+ (select sid from match group by sid having count(sid) = 
+(select max(count(sid)) from match group by sid));
+
+Query 3:
+select * from player where pid not in ( select captain_pid from
+team) and pid in (select man_of_match from match group by 
+man_of_match having count(man_of_match)=2);
+
+Query 4:
+select * from team where tid in (select winning_team_id from 
+match group by winning_team_id having count(winning_team_id)= 
+(select max(count(winning_team_id))from match group by 
+winning_team_id));
+
+Query 5 
+ select tname from team where tid in (
+ select winning_team_id from match group 
+by(winning_team_id,sid)
+ having count(*) in (select count(winning_team_id)
+ from match group by winning_team_id));
+
+3rd program
+CREATE TABLE TEAM 
+ (TID INT PRIMARY KEY, 
+ TNAMEVARCHAR(20), 
+COACH VARCHAR (20), 
+ CAPTAIN_PIDINT,  CITY VARCHAR(20));
+
+CREATE TABLE PLAYER 
+ (PIDINT PRIMARY KEY,  
+PNAMEVARCHAR(2),  
+AGE INT, TIDINT REFERENCES TEAM(TID));
+
+CREATE TABLE STADIUM 
+ (SID INT PRIMARY KEY,  
+SNAMEVARCHAR(20), 
+ PICODE NUMBER(8),  
+CITY VARCHAR(20), 
+ AREA VARCHAR(20));
+
+CREATE TABLE MATCH  
+(MID INT PRIMARY KEY,
+  MDATE DATE,  TIME VARCHAR(6),
+  SID INT REFERENCES STADIUM(SID), 
+ TEAM1_ID INT REFERENCES TEAM(TID),
+  TEAM2_ID INT REFERENCES TEAM(TID), 
+ WINNING_TEAM_IDINT REFERENCES TEAM(TID), 
+MAN_OF_MATCHINT REFERENCES PLAYER(PID));
+
+ CREATE TABLE PLAYER_PHONE 
+ ( PIDINT REFERENCES PLAYER(PID),
+ PHONE INT , 
+ PRIMARY KEY(PID,PHONE));
+
+
+INSERT INTO TEAM VALUES(1,'INDIA','VIRAT',11,'DELHI');
+INSERT INTO TEAM VALUES(2,'AUSTRALIA','SMITH',22,'SYDNEY');
+INSERT INTO TEAM VALUES(3,'WESTINDIES','SAMMY',33,'KINGSTOWN');
+INSERT INTO TEAM VALUES(4,'SRILANKA','SANGAKARA',44,'COLOMBO');
+
+INSERT INTO PLAYER VALUES(101,'MS',35,1);
+INSERT INTO PLAYER VALUES(102,'PS',40,2);
+INSERT INTO PLAYER VALUES(103,'MM',26,3);
+INSERT INTO PLAYER VALUES(104,'NO',36,4);
+
+INSERT INTO STADIUM VALUES(201,'CHINNASWAMY',560010,'BANGALORE','KARNATAKA');
+INSERT INTO STADIUM VALUES(202,'EADENGARDEN',200010,'KOLKATA','WESTBENGAL');
+INSERT INTO STADIUM VALUES(203,'MELBOURNE',122010,'MELBOURNE','AUSTRALIA');
+
+INSERT INTO MATCH VALUES(301,DATE'2010-5-10','10AM',201,1,2,1,101);
+INSERT INTO MATCH VALUES(302,DATE'2016-3-15','11AM',202,2,3,3,103);
+
+
+INSERT INTO PLAYER_PHONE VALUES(101,100000);
+INSERT INTO PLAYER_PHONE VALUES(102,2100000);
+INSERT INTO PLAYER_PHONE VALUES(103,23330000);
+
+
+Queries: 
+1 Display the youngest player (in terms of age) Name, Team name , age in which he belongs of the tournament. 
+
+SELECT B.NAME, A.TEAMNAME, B.AGE
+ FROM TEAM A , PLAYER B 
+WHERE A.TEAMID = B.TEAMID AND B.AGE=(SELECT MIN(AGE) FROM PLAYER ;
+
+
+2 List the details of the stadium where the maximum number of matches were played. 
+
+SELECT *
+ FROM STADIUM WHERE SID IN  (SELECT SID FROM MATCH GROUP BY SID HAVING COUNT(SID) = (SELECT MAX(COUNT(SID)) FROM MATCH GROUP BY SID))  ;
+
+3 List the details of the player who is not a captain but got the man_of _match award at least in two matches. 
+
+ SELECT *
+ FROM PLAYER WHERE PID NOT IN ( SELECTCAPTAIN_PID FROM TEAM 
+WHERE CAPTAIN_PID NOT IN (SELECT MAN_OF_MATCH FROM MATCH GROUP BY MAN_OF_MATCH HAVING COUNT(MAN_OF_MATCH)=2));
+
+
+4 Display the Team details who won the maximum matches. 
+
+SELECT * 
+FROM TEAM 
+WHERE TID IN  (SELECT WINNING_TEAM_ID FROM MATCH GROUP BY WINNING_TEAM_ID HAVING COUNT(WINNING_TEAM_ID)=(SELECT MAX(COUNT(WINNING_TEAM_ID))FROM MATCH GROUP BY WINNING_TEAM_ID));
+
+5 Display the team name where all its won matches played in the same stadium. 
+
+SELECT TNAME FROM TEAM WHERE TID IN (
+SELECT WINNING_TEAM_ID FROM MATCH GROUP
+BY(WINNING_TEAM_ID,SID)
+HAVING COUNT(*) IN (SELECT COUNT(WINNING_TEAM_ID)
+FROM MATCH GROUP BY WINNING_TEAM_ID));
+
+4th program
+CREATE TABLE TOURIST_PLACE
+(TPID NUMBER PRIMARY KEY,
+HISTORY VARCHAR(20),
+KILOMETERS NUMBER(3),
+STATE VARCHAR(20),
+TPNAME VARCHAR(20));
+
+CREATE TABLE TOURIST(TID NUMBER PRIMARY KEY,
+COUNTRY VARCHAR(20),
+AGE NUMBER,
+TNAME VARCHAR(20));
+
+CREATE TABLE VISITS
+(TPID NUMBER(3) REFERENCES TOURIST_PLACE(TPID),
+TID NUMBER REFERENCES TOURIST(TID),
+VDATE DATE,
+PRIMARY KEY(TPID,TID));
+
+CREATE TABLE EMAIL
+(TID NUMBER REFERENCES TOURIST(TID),
+EMAIL VARCHAR(20),PRIMARY KEY(TID,EMAIL));
+
+
+INSERT INTO TOURIST_PLACE(TPID,HISTORY,KILOMETERS,STATE,TPNAME)VALUES('11','BEAUTY',' 160','KARNATAKA','OOTY');
+INSERT INTO TOURIST_PLACE(TPID,HISTORY,KILOMETERS,STATE,TPNAME)VALUES('12','MONUMENT',' 260','KERLA','BELURU');
+INSERT INTO TOURIST_PLACE(TPID,HISTORY,KILOMETERS,STATE,TPNAME)VALUES('13','BEACH',' 360','TAMILNANDU','MARINA');
+
+INSERT INTO TOURIST(TID,COUNTRY,AGE,TNAME)VALUES('22','INDIA','30','ASHOK');
+INSERT INTO TOURIST(TID,COUNTRY,AGE,TNAME)VALUES('23','USA','25','KIRAN');
+INSERT INTO TOURIST(TID,COUNTRY,AGE,TNAME)VALUES('24','LONDON','26','ABHI');
+
+INSERT INTO VISITS VALUES('12','23','13-NOV-2014');
+INSERT INTO VISITS VALUES('11','24','24-JUN-2012');
+INSERT INTO VISITS VALUES('13','22','24-SEP-2011') ;
+INSERT INTO VISITS VALUES('11','23','13-FEB-2010');
+INSERT INTO VISITS VALUES('13','23','12-JAN-2010');
+
+INSERT INTO EMAIL VALUES('23','ASHOK@GMAIL.COM');
+INSERT INTO EMAIL VALUES('22','KIRAN@GMAIL.COM');
+INSERT INTO EMAIL VALUES('24','ABHI@GMAIL.COM');
+
+1List the state name which is having maximum number of tourist places.
+SELECT STATE FROM TOURIST_PLACE GROUP BY STATE HAVING
+COUNT(STATE)=(SELECT MAX(COUNT(STATE)) FROM TOURIST_PLACE GROUP BY STATE);
+
+2List details of Tourist place where maximum number of tourists visited.
+SELECT * FROM TOURIST_PLACE WHERE TPID IN (SELECT TPID FROM VISITS GROUP
+BY TPID HAVING COUNT(TPID)= (SELECT MAX(COUNT(TPID)) FROM VISITS GROUP BY
+TPID));
+3List the details of tourists visited all tourist places of the state “KARNATAKA”
+SELECT * FROM TOURIST T WHERE T.TID IN
+(SELECT TID FROM VISITS JOIN TOURIST_PLACE ON
+VISITS.TPID=TOURIST_PLACE.TPID WHERE STATE='KARNATAKA'
+GROUP BY TID HAVING COUNT(STATE) IN (SELECT COUNT(STATE ) FROM
+TOURIST_PLACE WHERE STATE='KARNATAKA') );
+
+4.Display the details of the tourists visited at least one tourist place of the state, but visited all states tourist places.
+SELECT * FROM TOURIST T WHERE T.TID IN (SELECT TID FROM VISITS JOIN
+TOURIST_PLACE ON VISITS.TPID=TOURIST_PLACE.TPID
+GROUP BY TID HAVING COUNT(DISTINCT STATE)
+IN (SELECT COUNT(DISTINCT STATE ) FROM TOURIST_PLACE) );
+
+
+5 Display the details of the tourist place visited by the tourists of all country.
+SELECT * FROM TOURIST_PLACE WHERE TPID IN (
+SELECT TPID FROM VISITS JOIN TOURIST ON VISITS.TID=TOURIST.TID
+GROUP BY TPID HAVING COUNT(DISTINCT COUNTRY)=
+(SELECT COUNT(DISTINCT COUNTRY) FROM TOURIST));
+
+5th program
+CREATE TABLE CONSTITUENCY
+(CONS_ID NUMBER(20) PRIMARY KEY,
+CSNAME VARCHAR(20),
+CSSTATE VARCHAR(20),
+NO_OF_VOTERS NUMBER(10));
+
+CREATE TABLE PARTY
+(PID NUMBER(20) PRIMARY KEY,
+PNAME VARCHAR(20),
+PSYMBOL VARCHAR(10));
+
+CREATE TABLE CANDIDATES
+(CAND_ID NUMBER(12) PRIMARY KEY,
+PHONE_NO NUMBER(10),
+AGE NUMBER(2),
+STATE VARCHAR(20),
+NAME VARCHAR(20),
+PID INT REFERENCES PARTY(PID));
+
+
+CREATE TABLE CONTEST
+(CONS_ID NUMBER(20) REFERENCES CONSTITUENCY(CONS_ID),
+CAND_ID NUMBER(12) REFERENCES CANDIDATES(CAND_ID),
+PRIMARY KEY(CONS_ID,CAND_ID));
+
+CREATE TABLE VOTER
+(VID NUMBER(20) PRIMARY KEY,
+VNAME VARCHAR(20),
+VAGE NUMBER(5),
+VADDR VARCHAR(20),
+CONS_ID NUMBER(20) REFERENCES CONSTITUENCY(CONS_ID),
+CAND_ID NUMBER(12) REFERENCES CANDIDATES(CAND_ID));
+
+
+INSERT INTO CONSTITUENCY VALUES(111,'rajajinagar','karnataka',4);
+INSERT INTO CONSTITUENCY VALUES(222, 'ramnagar','kerala', 1);
+
+
+INSERT INTO PARTY VALUES(876, 'bjp', 'lotus');
+INSERT INTO PARTY VALUES(877, 'congress', 'hand');
+
+
+INSERT INTO CANDIDATES VALUES(121, 9538904626, 23, 'kerala', 'raksha', 876);
+INSERT INTO CANDIDATES VALUES(122, 9740777502, 24, 'karnataka', 'veena', 877);
+
+
+INSERT INTO CONTEST VALUES(111, 122);
+INSERT INTO CONTEST VALUES(222, 121);
+INSERT INTO CONTEST VALUES(222, 122);
+
+INSERT INTO VOTER VALUES(345, 'prashanth', 21,' kanakpura', 222, 122);
+INSERT INTO VOTER VALUES(346, 'prakash', 23, 'ramnagar', 111 ,121);
+INSERT INTO VOTER VALUES(348, 'nagesh' ,30,' mandya', 111, 121);
+INSERT INTO VOTER VALUES(349, 'nagesh', '30', 'mandya', 111, 121);
+
+Queries:
+1 List the details of the candidates who are contesting from more than    one constituencies which are belongs to different states.
+
+SELECT * FROM CANDIDATES WHERE CAND_ID IN (SELECT CAND_ID FROM CONTEST
+JOIN CONSTITUENCY ON CONTEST.CONS_ID=CONSTITUENCY.CONS_ID
+GROUP BY CAND_ID HAVING COUNT(DISTINCT(CSSTATE))>1);
+
+2 Display the state name having maximum number of constituencies.
+
+SELECT CSSTATE FROM CONSTITUENCY GROUP BY CSSTATE HAVING COUNT(CSSTATE)
+IN (SELECT MAX(COUNT(CSSTATE)) FROM CONSTITUENCY GROUP BY CSSTATE);
+
+query 3:
+create or replace procedure agechecking ( id in number,age in 
+number)
+ as
+ BEGIN
+ if age>18 then
+ insert into voter(vid,vage) values (id,age);
+ else
+ dbms_output.put_line('age should be high');
+ end if;
+ end agechecking;
+ /
+Procedure created.
+SQL> set serveroutput on;
+SQL> exec agechecking (25,21);
+
+query 4:
+ create or replace procedure display_count
+ (
+ const_id number
+ )
+ as
+ vid constituency.cons_id % type;
+ begin
+ select no_of_voters into vid from constituency where cons_id = const_id 
+and rownum = 1;
+ dbms_output.put_line ( 'total voters are: ' || vid);
+end;
+
+Query 5: 
+ create or replace trigger count
+ after insert on voter
+ for each row
+ begin
+ update constituency
+ set no_of_voters = no_of_voters + 1
+ where cons_id=:new.cons_id;
+ end count;
